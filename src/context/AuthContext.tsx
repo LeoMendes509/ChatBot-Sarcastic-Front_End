@@ -1,12 +1,12 @@
 import { createContext, useState, useContext, type ReactNode } from "react";
 
-// Interface para dados de login
+// Interface for login data
 export interface LoginData {
   username: string;
   password: string;
 }
 
-// Interface para dados de registro
+// Interface for registration data
 export interface RegisterData {
   username: string;
   password: string;
@@ -15,35 +15,36 @@ export interface RegisterData {
   age: number;
 }
 
-// Interface para resposta de login do backend
+// Interface for login response from backend
 export interface LoginResponse {
   token: string;
   username: string;
 }
 
-// Interface para o contexto de autenticação
+// Interface for authentication context
 interface AuthContextProps {
-  // Estados de autenticação
-    token: string | null;
+  // Authentication states
+  token: string | null;
   username: string | null;
   isLoading: boolean;
   error: string | null;
   
-  // Funções de autenticação
+  // Authentication functions
   login: (data: LoginData) => Promise<boolean>;
   register: (data: RegisterData) => Promise<boolean>;
-    logout: () => void;
+  logout: () => void;
+  deleteUser: () => Promise<boolean>;
   clearError: () => void;
   
-  // Função para verificar se está autenticado
+  // Function to check if authenticated
   isAuthenticated: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
-// Provider do contexto de autenticação
+// Authentication context provider
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Estados locais para gerenciar autenticação
+  // Local states to manage authentication
   const [token, setToken] = useState<string | null>(() => 
     localStorage.getItem('auth_token')
   );
@@ -53,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Função para fazer login no backend
+  // Function to login to backend
   const login = async (data: LoginData): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
@@ -69,13 +70,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (!response.ok) {
         const errorText = await response.text();
-        setError(errorText || 'Erro no login');
+        
+        // Checks if it's user not found error
+        if (errorText.includes('user') || errorText.includes('usuário') || 
+            errorText.includes('not found') || errorText.includes('não encontrado')) {
+          setError('User not registered');
+        } else if (errorText.includes('password') || errorText.includes('senha') ||
+                   errorText.includes('invalid') || errorText.includes('inválida')) {
+          setError('User not registered');
+        } else {
+          setError(errorText || 'User not registered');
+        }
         return false;
       }
 
       const loginData: LoginResponse = await response.json();
       
-      // Salva os dados de autenticação
+      // Saves authentication data
       setToken(loginData.token);
       setUsername(loginData.username);
       localStorage.setItem('auth_token', loginData.token);
@@ -83,15 +94,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       return true;
     } catch (err) {
-      setError('Erro de conexão com o servidor');
-      console.error('Erro no login:', err);
+      setError('User not registered');
+      console.error('Login error:', err);
       return false;
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Função para registrar novo usuário
+  // Function to register new user
   const register = async (data: RegisterData): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
@@ -107,41 +118,86 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (!response.ok) {
         const errorText = await response.text();
-        setError(errorText || 'Erro no registro');
+        
+        // Checks if it's existing user or email error
+        if (errorText.includes('username') || errorText.includes('usuário')) {
+          setError('This username already exists');
+        } else if (errorText.includes('email') || errorText.includes('e-mail')) {
+          setError('This username already exists');
+        } else {
+          setError(errorText || 'This username already exists');
+        }
         return false;
       }
 
-      // Registro bem-sucedido
+      // Registration successful
       return true;
     } catch (err) {
-      setError('Erro de conexão com o servidor');
-      console.error('Erro no registro:', err);
+      setError('This username already exists');
+      console.error('Registration error:', err);
       return false;
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Função para fazer logout
-    const logout = () => {
-        setToken(null);
-        setUsername(null);
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('username');
+  // Function to logout
+  const logout = () => {
+    setToken(null);
+    setUsername(null);
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('username');
     setError(null);
   };
 
-  // Função para limpar erros
+  // Function to delete user
+  const deleteUser = async (): Promise<boolean> => {
+    if (!token) {
+      setError('Authentication token not found');
+      return false;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const response = await fetch('http://localhost:8081/api/auth/delete', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        setError(errorText || 'Error deleting user');
+        return false;
+      }
+
+      // Deletes user and logs out
+      logout();
+      return true;
+    } catch (err) {
+      setError('User not registered');
+      console.error('Error deleting user:', err);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Function to clear errors
   const clearError = () => {
     setError(null);
   };
 
-  // Função para verificar se está autenticado
+  // Function to check if authenticated
   const isAuthenticated = (): boolean => {
     return token !== null && username !== null;
     };
 
-    return (
+  return (
     <AuthContext.Provider 
       value={{
         token,
@@ -151,20 +207,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         register,
         logout,
+        deleteUser,
         clearError,
         isAuthenticated
       }}
     >
-            {children}
-        </AuthContext.Provider>
-    );
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
-// Hook para usar o contexto de autenticação
+// Hook to use authentication context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth deve ser usado dentro de um AuthProvider');
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };

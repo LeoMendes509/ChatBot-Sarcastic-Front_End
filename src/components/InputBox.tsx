@@ -1,27 +1,41 @@
 import { useTranslations, type Language } from '../utils/translations';
 
-// Interface para as props do componente InputBox
+/**
+ * Interface for InputBox component props
+ * Defines the properties needed for the input component
+ */
 interface InputBoxProps {
-  input: string;
-  setInput: (value: string) => void;
-  onSend: () => void;
-  language: Language;
-  disabled?: boolean;
+  input: string; // Current input value
+  setInput: (value: string) => void; // Function to update input value
+  onSend: () => void; // Function called when message is sent
+  language: Language; // Current application language
+  disabled?: boolean; // If input is disabled (optional, default false)
 }
 
-// Componente para a caixa de input do chat
+/**
+ * Component for chat input box
+ * Allows user to type and send messages
+ * Includes Enter key support for sending and validations
+ */
 export function InputBox({ input, setInput, onSend, language, disabled = false }: InputBoxProps) {
-  // Hook para acessar as traduções
+  // Hook to access translations based on current language
   const t = useTranslations(language);
 
-  // Função para lidar com o envio da mensagem
+  /**
+   * Function to handle message sending
+   * Checks if there is text and if not disabled before sending
+   */
   const handleSend = () => {
     if (input.trim() && !disabled) {
       onSend();
     }
   };
 
-  // Função para lidar com teclas pressionadas
+  /**
+   * Função para lidar com teclas pressionadas
+   * Envia a mensagem quando Enter é pressionado (sem Shift)
+   * @param e - Evento de teclado
+   */
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -42,7 +56,7 @@ export function InputBox({ input, setInput, onSend, language, disabled = false }
         className="message-input"
       />
       
-      {/* Botão de envio */}
+      {/* Botão de envio da mensagem */}
       <button 
         onClick={handleSend}
         disabled={disabled || !input.trim()}

@@ -1,13 +1,25 @@
-// Interface para as props do componente Message
+/**
+ * Interface for Message component props
+ * Defines the data structure needed to display a message
+ */
 interface MessageProps {
-  text: string;
-  sender: 'user' | 'bot';
-  timestamp?: string;
+  text: string; // Message text
+  sender: 'user' | 'bot'; // Who sent the message (user or bot)
+  timestamp?: string; // Message date and time (optional)
 }
 
-// Componente para exibir mensagens do chat
+/**
+ * Component to display chat messages
+ * Renders user and bot messages with different styles
+ * Includes timestamp formatting and responsiveness
+ */
 export function Message({ text, sender, timestamp }: MessageProps) {
-  // Função para formatar o timestamp
+  /**
+   * Function to format message timestamp
+   * Converts ISO string to readable format (HH:MM)
+   * @param timestamp - ISO string of date/time
+   * @returns Formatted string or empty string if invalid
+   */
   const formatTimestamp = (timestamp?: string): string => {
     if (!timestamp) return '';
     
@@ -24,12 +36,12 @@ export function Message({ text, sender, timestamp }: MessageProps) {
 
   return (
     <div className={`message message-${sender}`}>
-      {/* Conteúdo da mensagem */}
+      {/* Conteúdo principal da mensagem */}
       <div className="message-content">
         {text}
       </div>
       
-      {/* Timestamp da mensagem (se disponível) */}
+      {/* Timestamp da mensagem (exibido apenas se disponível) */}
       {timestamp && (
         <div className="message-timestamp">
           {formatTimestamp(timestamp)}

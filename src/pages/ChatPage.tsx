@@ -4,39 +4,101 @@ import { useTranslations, type Language } from '../utils/translations';
 import { apiService, type ChatMessage } from '../services/api';
 import { Message } from '../components/Message';
 import { InputBox } from '../components/InputBox';
+import { MenuDropdown } from '../components/MenuDropdown';
 
-// Interface para as props do componente ChatPage
+// Interface for ChatPage component props
 interface ChatPageProps {
   language: Language;
   onLanguageChange: (lang: Language) => void;
 }
 
-// Componente da página do chat
+// Chat page component
 export function ChatPage({ language, onLanguageChange }: ChatPageProps) {
-  // Hook para acessar o contexto de autenticação
-  const { token, username, logout } = useAuth();
+  // Hook to access authentication context
+  const { token, username } = useAuth();
   
-  // Hook para acessar as traduções
+  // Hook to access translations
   const t = useTranslations(language);
   
-  // Estados locais para o chat
+  // Local states for chat
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   
-  // Ref para o container de mensagens (para scroll automático)
+  // Ref for messages container (for auto scroll)
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Função para fazer scroll automático para a última mensagem
+  // Function to auto scroll to last message
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Efeito para scroll automático quando novas mensagens são adicionadas
+  // Effect for auto scroll when new messages are added
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Function to save messages to localStorage
+  const saveMessagesToLocal = (messages: ChatMessage[]) => {
+    try {
+      localStorage.setItem(`chat_history_${username}`, JSON.stringify(messages));
+    } catch (err) {
+      console.error('Error saving local history:', err);
+    }
+  };
+
+  // Função para carregar mensagens do localStorage
+  const loadMessagesFromLocal = (): ChatMessage[] => {
+    try {
+      const saved = localStorage.getItem(`chat_history_${username}`);
+      return saved ? JSON.parse(saved) : [];
+    } catch (err) {
+      console.error('Erro ao carregar histórico local:', err);
+      return [];
+    }
+  };
+
+  // Efeito para carregar histórico ao entrar na página
+  useEffect(() => {
+    const loadChatHistory = async () => {
+      if (!token) return;
+      
+      try {
+        setIsLoadingHistory(true);
+        
+        
+        // Primeiro tenta carregar do localStorage
+        const localHistory = loadMessagesFromLocal();
+        if (localHistory.length > 0) {
+          setMessages(localHistory);
+          setIsLoadingHistory(false);
+          return;
+        }
+        
+        // Se não há histórico local, tenta carregar do backend
+        const history = await apiService.getChatHistory(username || undefined, token);
+        setMessages(history);
+        saveMessagesToLocal(history);
+      } catch (err) {
+        console.error('Erro ao carregar histórico:', err);
+        // Se não conseguir carregar histórico, adiciona mensagem de boas-vindas
+        const welcomeMessage: ChatMessage = {
+          text: t.messages.welcomeMessage,
+          sender: 'bot',
+          timestamp: new Date().toISOString()
+        };
+        setMessages([welcomeMessage]);
+        saveMessagesToLocal([welcomeMessage]);
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    };
+
+    loadChatHistory();
+  }, [token, t.messages.welcomeMessage, username]);
 
   // Função para enviar mensagem para o backend
   const sendMessage = async () => {
@@ -52,6 +114,7 @@ export function ChatPage({ language, onLanguageChange }: ChatPageProps) {
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
+    setIsTyping(true);
     setError(null);
 
     try {
@@ -73,34 +136,62 @@ export function ChatPage({ language, onLanguageChange }: ChatPageProps) {
         timestamp: new Date().toISOString()
       };
 
-      setMessages(prev => [...prev, botMessage]);
+      setMessages(prev => {
+        const newMessages = [...prev, botMessage];
+        saveMessagesToLocal(newMessages);
+        return newMessages;
+      });
     } catch (err) {
       // Em caso de erro, adiciona mensagem de erro
       const errorMessage: ChatMessage = {
-        text: language === 'pt-BR' 
-          ? 'Erro ao enviar mensagem. Tente novamente.' 
-          : 'Error sending message. Please try again.',
+        text: t.messages.errorSendingMessage,
         sender: 'bot',
         timestamp: new Date().toISOString()
       };
       
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => {
+        const newMessages = [...prev, errorMessage];
+        saveMessagesToLocal(newMessages);
+        return newMessages;
+      });
       setError(err instanceof Error ? err.message : 'Erro desconhecido');
     } finally {
       setIsLoading(false);
+      setIsTyping(false);
     }
   };
 
   // Função para iniciar novo chat
-  const handleNewChat = () => {
-    setMessages([]);
-    setError(null);
+  const handleNewChat = async () => {
+    try {
+      // Limpa mensagens locais
+      setMessages([]);
+      setError(null);
+      
+      // Limpa histórico local
+      localStorage.removeItem(`chat_history_${username}`);
+      
+      // Inicia nova sessão no backend
+      if (token) {
+        await apiService.startNewSession(token);
+      }
+      
+      // Adiciona mensagem de boas-vindas
+      const welcomeMessage: ChatMessage = {
+        text: t.messages.welcomeMessage,
+        sender: 'bot',
+        timestamp: new Date().toISOString()
+      };
+      setMessages([welcomeMessage]);
+      saveMessagesToLocal([welcomeMessage]);
+    } catch (err) {
+      console.error('Erro ao iniciar nova sessão:', err);
+      // Mesmo com erro, limpa as mensagens locais
+      setMessages([]);
+      localStorage.removeItem(`chat_history_${username}`);
+    }
   };
 
-  // Função para fazer logout
-  const handleLogout = () => {
-    logout();
-  };
 
   return (
     <div className="chat-container">
@@ -108,28 +199,12 @@ export function ChatPage({ language, onLanguageChange }: ChatPageProps) {
       <header className="chat-header">
         <div className="header-left">
           {/* Menu dropdown */}
-          <div className="menu">
-            <span className="menu-icon">&#x2630;</span>
-            <div className="menu-dropdown">
-              <ul>
-                <li onClick={handleNewChat}>{t.chat.newChat}</li>
-                <li onClick={handleLogout}>
-                  {t.auth.logout} ({username})
-                </li>
-                <li className="language-option">
-                  <div>{t.menu.language}</div>
-                  <select
-                    value={language}
-                    onChange={(e) => onLanguageChange(e.target.value as Language)}
-                    className="language-select"
-                  >
-                    <option value="pt-BR">🇧🇷 Português</option>
-                    <option value="en">🇺🇸 English</option>
-                  </select>
-                </li>
-              </ul>
-            </div>
-          </div>
+          <MenuDropdown
+            language={language}
+            onLanguageChange={onLanguageChange}
+            onNewChat={handleNewChat}
+            onLoadHistory={(messages) => setMessages(messages)}
+          />
         </div>
 
         {/* Nome do bot */}
@@ -139,7 +214,7 @@ export function ChatPage({ language, onLanguageChange }: ChatPageProps) {
 
         {/* Botão de novo chat */}
         <div className="new-chat">
-          <button onClick={handleNewChat}>
+          <button onClick={handleNewChat} disabled={isLoading}>
             {t.chat.newChat}
           </button>
         </div>
@@ -149,15 +224,22 @@ export function ChatPage({ language, onLanguageChange }: ChatPageProps) {
       <main className="main-area">
         {/* Container das mensagens */}
         <div className="chat-box" id="chat-box">
+          {/* Estado de carregamento do histórico */}
+          {isLoadingHistory && (
+            <div className="loading-state">
+              <p>{language === 'pt-BR' ? 'Carregando histórico...' : 'Loading history...'}</p>
+            </div>
+          )}
+
           {/* Estado vazio quando não há mensagens */}
-          {messages.length === 0 && (
+          {!isLoadingHistory && messages.length === 0 && (
             <div className="empty-state">
               <p>{t.chat.emptyState}</p>
             </div>
           )}
 
           {/* Lista de mensagens */}
-          {messages.map((message, index) => (
+          {!isLoadingHistory && messages.map((message, index) => (
             <Message
               key={index}
               text={message.text}
@@ -166,11 +248,14 @@ export function ChatPage({ language, onLanguageChange }: ChatPageProps) {
             />
           ))}
 
-          {/* Indicador de carregamento */}
-          {isLoading && (
+          {/* Indicador de digitação */}
+          {isTyping && (
             <div className="message message-bot">
-              <div className="message-content">
-                {language === 'pt-BR' ? 'Digitando...' : 'Typing...'}
+              <div className="message-content typing-indicator">
+                <span className="typing-dots">
+                  <span>.</span><span>.</span><span>.</span>
+                </span>
+                {t.messages.typing}
               </div>
             </div>
           )}
@@ -185,7 +270,7 @@ export function ChatPage({ language, onLanguageChange }: ChatPageProps) {
           setInput={setInput}
           onSend={sendMessage}
           language={language}
-          disabled={isLoading}
+          disabled={isLoading || isTyping}
         />
       </main>
 

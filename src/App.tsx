@@ -5,52 +5,58 @@ import { ChatPage } from './pages/ChatPage';
 import { type Language } from './utils/translations';
 import './App.css';
 
-// Componente principal da aplicação
+/**
+ * Main application component
+ * Manages routing between authentication page and chat page
+ * Controls global application language
+ */
 function App() {
-  // Estado para controlar o idioma da aplicação
+  // State to control application language (Portuguese or English)
   const [language, setLanguage] = useState<Language>(() => {
-    // Tenta ler o idioma salvo no localStorage para persistência
-    const saved = localStorage.getItem('app_language') as Language | null;
-    return saved ?? 'pt-BR';
+    // Reads saved language from localStorage and ensures fallback to 'pt-BR'
+    const saved = localStorage.getItem('app_language');
+    return (saved ?? 'pt-BR') as Language;
   });
 
-  // Hook para acessar o contexto de autenticação
+  // Hook to access authentication context
   const { isAuthenticated } = useAuth();
 
-  // Efeito para salvar o idioma no localStorage quando ele muda
+  // Saves language to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('app_language', language);
   }, [language]);
 
-  // Função para alterar o idioma
+  // Function to change language
   const handleLanguageChange = (newLanguage: Language) => {
     setLanguage(newLanguage);
   };
 
-  // Renderiza a página de autenticação se não estiver logado
+  // If not authenticated, shows login page
   if (!isAuthenticated()) {
     return (
       <div className="app-wrapper">
-        <AuthPage 
-          language={language} 
-          onLanguageChange={handleLanguageChange} 
+        <AuthPage
+          language={language}
+          onLanguageChange={handleLanguageChange}
         />
       </div>
     );
   }
 
-  // Renderiza a página do chat se estiver logado
+  // If authenticated, shows chat page
   return (
     <div className="app-wrapper">
-      <ChatPage 
-        language={language} 
-        onLanguageChange={handleLanguageChange} 
+      <ChatPage
+        language={language}
+        onLanguageChange={handleLanguageChange}
       />
     </div>
   );
 }
 
-// Componente raiz que envolve a aplicação com o provider de autenticação
+/**
+ * Root component that wraps the application with authentication provider
+ */
 function AppWithProviders() {
   return (
     <AuthProvider>

@@ -1,43 +1,43 @@
-// Serviço centralizado para comunicação com a API do backend
-// Gerencia todas as requisições HTTP do chatbot
+// Centralized service for backend API communication
+// Manages all HTTP requests for the chatbot
 
-// Interface para mensagem do chat
+// Interface for chat message
 export interface ChatMessage {
   text: string;
-  sender: 'user' | 'bot';
+  sender: "user" | "bot";
   timestamp?: string;
 }
 
-// Interface para requisição de envio de mensagem
+// Interface for message sending request
 export interface SendMessageRequest {
   message: string;
   username?: string;
   language?: string;
 }
 
-// Interface para resposta do chat
+// Interface for chat response
 export interface ChatResponse {
   response: string;
 }
 
-// Classe responsável por gerenciar as chamadas à API
+// Class responsible for managing API calls
 class ApiService {
   private baseUrl: string;
 
   constructor() {
-    // URL base do backend Spring Boot
-    this.baseUrl = 'http://localhost:8081/api';
+    // Base URL for Spring Boot backend
+    this.baseUrl = "http://localhost:8081/api";
   }
 
-  // Método genérico para requisições HTTP
+  // Generic method for HTTP requests
   private async makeRequest<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
-    
+
     const defaultHeaders = {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     };
 
     const config: RequestInit = {
@@ -51,74 +51,73 @@ class ApiService {
     try {
       const response = await fetch(url, config);
 
-      // Caso o backend retorne erro, exibe o texto e lança uma exceção
+      // If backend returns error, displays text and throws exception
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(errorText || `HTTP error! status: ${response.status}`);
       }
 
-      // Retorna o JSON da resposta
+      // Returns JSON response
       return await response.json();
     } catch (error) {
-      console.error('❌ Erro na requisição API:', error);
+      console.error("❌ API request error:", error);
       throw error;
     }
   }
 
-  // Método para enviar mensagem ao chatbot
+  // Method to send message to chatbot
   async sendMessage(
     message: string,
     username?: string,
     token?: string,
-    sessionName: string = 'default',
+    sessionName: string = "default",
     language?: string
   ): Promise<ChatResponse> {
-    // Cabeçalhos padrão
+    // Default headers
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     };
 
-    // Se o token existir, adiciona ao header Authorization
+    // If token exists, adds to Authorization header
     if (token) {
       headers.Authorization = `Bearer ${token}`;
-      console.log('✅ Token incluído no header:', token);
-    } else {
-      console.warn('⚠️ Nenhum token fornecido. A requisição pode falhar com 403.');
     }
 
-    // Corpo da requisição
     const body: SendMessageRequest = { message, username, language };
 
-    // Faz a requisição POST para o endpoint de chat
-    const response = await this.makeRequest<ChatResponse>(
+    return this.makeRequest<ChatResponse>(
       `/chat/send?sessionName=${encodeURIComponent(sessionName)}`,
       {
-        method: 'POST',
+        method: "POST",
         headers,
         body: JSON.stringify(body),
       }
     );
-
-    return response;
   }
 
-  // Método para buscar histórico completo do chat
-  async getChatHistory(token?: string): Promise<ChatMessage[]> {
-    const headers: Record<string, string> = {};
+  // Method to fetch complete chat history
+  async getChatHistory(
+    token?: string,
+    sessionName: string = "default"
+  ): Promise<ChatMessage[]> {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
 
     if (token) {
       headers.Authorization = `Bearer ${token}`;
     }
 
-    return this.makeRequest<ChatMessage[]>('/chat/history', {
-      method: 'GET',
+    const url = `/chat/history?sessionName=${encodeURIComponent(sessionName)}`;
+
+    return this.makeRequest<ChatMessage[]>(url, {
+      method: "GET",
       headers,
     });
   }
-
-  // Método para buscar mensagens de uma sessão específica
+  // Method to fetch messages from a specific session
   async getChatSession(
-    sessionName: string,
+    sessionName: string = "default",
     token?: string
   ): Promise<ChatMessage[]> {
     const headers: Record<string, string> = {};
@@ -127,15 +126,63 @@ class ApiService {
       headers.Authorization = `Bearer ${token}`;
     }
 
-    return this.makeRequest<ChatMessage[]>(
-      `/chat/session?sessionName=${encodeURIComponent(sessionName)}`,
-      {
-        method: 'GET',
-        headers,
-      }
-    );
+    const endpoint = `/chat/history?sessionName=${encodeURIComponent(
+      sessionName
+    )}`;
+
+    return this.makeRequest<ChatMessage[]>(endpoint, {
+      method: "GET",
+      headers,
+    });
+  }
+
+  // Method to start new session (clears old messages)
+  async startNewSession(token?: string): Promise<void> {
+    const headers: Record<string, string> = {};
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    return this.makeRequest<void>("/chat/new-session", {
+      method: "POST",
+      headers,
+    });
+  }
+
+  // Method to save chat history
+  async saveChatHistory(
+    messages: ChatMessage[], 
+    token?: string, 
+    sessionName: string = 'default'
+  ): Promise<void> {
+    if (!token) throw new Error("Token required");
+
+    await this.makeRequest<void>(`/chat/save-history?sessionName=${encodeURIComponent(sessionName)}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(messages)
+    });
+  }
+
+
+  // Method to delete user
+  async deleteUser(token?: string): Promise<void> {
+    if (!token) {
+      throw new Error("Authentication token required");
+    }
+
+    return this.makeRequest<void>("/auth/delete", {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
   }
 }
 
-// Instância única (singleton) do serviço
+// Single instance (singleton) of the service
 export const apiService = new ApiService();

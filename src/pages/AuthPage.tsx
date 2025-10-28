@@ -2,21 +2,21 @@ import { useState, useEffect } from 'react';
 import { useAuth, type LoginData, type RegisterData } from '../context/AuthContext';
 import { useTranslations, type Language } from '../utils/translations';
 
-// Interface para as props do componente AuthPage
+// Interface for AuthPage component props
 interface AuthPageProps {
   language: Language;
   onLanguageChange: (lang: Language) => void;
 }
 
-// Componente da página de autenticação
+// Authentication page component
 export function AuthPage({ language, onLanguageChange }: AuthPageProps) {
-  // Hook para acessar o contexto de autenticação
+  // Hook to access authentication context
   const { login, register, isLoading, error, clearError } = useAuth();
   
-  // Hook para acessar as traduções
+  // Hook to access translations
   const t = useTranslations(language);
   
-  // Estados locais para controlar o formulário
+  // Local states to control form
   const [formMode, setFormMode] = useState<'login' | 'register'>('login');
   const [formData, setFormData] = useState({
     username: '',
@@ -26,12 +26,12 @@ export function AuthPage({ language, onLanguageChange }: AuthPageProps) {
     age: ''
   });
 
-  // Limpa erros quando muda o modo do formulário
+  // Clears errors when form mode changes
   useEffect(() => {
     clearError();
   }, [formMode, clearError]);
 
-  // Função para atualizar os dados do formulário
+  // Function to update form data
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -39,7 +39,7 @@ export function AuthPage({ language, onLanguageChange }: AuthPageProps) {
     }));
   };
 
-  // Função para lidar com o envio do formulário de login
+  // Function to handle login form submission
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -54,12 +54,12 @@ export function AuthPage({ language, onLanguageChange }: AuthPageProps) {
 
     const success = await login(loginData);
     if (success) {
-      // Login bem-sucedido - o contexto já gerencia o redirecionamento
+      // Login successful - context already manages redirection
       setFormData({ username: '', password: '', email: '', name: '', age: '' });
     }
   };
 
-  // Função para lidar com o envio do formulário de registro
+  // Function to handle registration form submission
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -78,13 +78,13 @@ export function AuthPage({ language, onLanguageChange }: AuthPageProps) {
 
     const success = await register(registerData);
     if (success) {
-      // Registro bem-sucedido - muda para modo de login
+      // Registration successful - switches to login mode
       setFormMode('login');
       setFormData({ username: '', password: '', email: '', name: '', age: '' });
     }
   };
 
-  // Função para alternar entre login e registro
+  // Function to toggle between login and registration
   const toggleFormMode = () => {
     setFormMode(prev => prev === 'login' ? 'register' : 'login');
     setFormData({ username: '', password: '', email: '', name: '', age: '' });
@@ -94,11 +94,11 @@ export function AuthPage({ language, onLanguageChange }: AuthPageProps) {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        {/* Header com título e seletor de idioma */}
+        {/* Header with title and language selector */}
         <div className="auth-header">
           <h1>{formMode === 'login' ? t.auth.loginTitle : t.auth.registerTitle}</h1>
           
-          {/* Seletor de idioma */}
+          {/* Language selector */}
           <div className="language-selector">
             <select
               value={language}
@@ -111,7 +111,7 @@ export function AuthPage({ language, onLanguageChange }: AuthPageProps) {
           </div>
         </div>
 
-        {/* Formulário de Login */}
+        {/* Login Form */}
         {formMode === 'login' && (
           <form onSubmit={handleLogin} className="auth-form">
             <div className="form-group">
@@ -159,7 +159,7 @@ export function AuthPage({ language, onLanguageChange }: AuthPageProps) {
           </form>
         )}
 
-        {/* Formulário de Registro */}
+        {/* Registration Form */}
         {formMode === 'register' && (
           <form onSubmit={handleRegister} className="auth-form">
             <div className="form-group">
@@ -248,7 +248,7 @@ export function AuthPage({ language, onLanguageChange }: AuthPageProps) {
           </form>
         )}
 
-        {/* Exibição de erros */}
+        {/* Error display */}
         {error && (
           <div className="error-message">
             {error}
