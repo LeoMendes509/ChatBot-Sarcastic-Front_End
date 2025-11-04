@@ -2,12 +2,17 @@ import { useState, useEffect } from 'react';
 import { useAuth, type LoginData, type RegisterData } from '../context/AuthContext';
 import { useTranslations, type Language } from '../utils/translations';
 
+<<<<<<< HEAD
 // Interface para as props do componente AuthPage
+=======
+// Interface for AuthPage component props
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
 interface AuthPageProps {
   language: Language;
   onLanguageChange: (lang: Language) => void;
 }
 
+<<<<<<< HEAD
 // Componente da página de autenticação
 export function AuthPage({ language, onLanguageChange }: AuthPageProps) {
   // Hook para acessar o contexto de autenticação
@@ -17,6 +22,17 @@ export function AuthPage({ language, onLanguageChange }: AuthPageProps) {
   const t = useTranslations(language);
   
   // Estados locais para controlar o formulário
+=======
+// Authentication page component
+export function AuthPage({ language, onLanguageChange }: AuthPageProps) {
+  // Hook to access authentication context
+  const { login, register, isLoading, error, clearError } = useAuth();
+  
+  // Hook to access translations
+  const t = useTranslations(language);
+  
+  // Local states to control form
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
   const [formMode, setFormMode] = useState<'login' | 'register'>('login');
   const [formData, setFormData] = useState({
     username: '',
@@ -26,12 +42,20 @@ export function AuthPage({ language, onLanguageChange }: AuthPageProps) {
     age: ''
   });
 
+<<<<<<< HEAD
   // Limpa erros quando muda o modo do formulário
+=======
+  // Clears errors when form mode changes
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
   useEffect(() => {
     clearError();
   }, [formMode, clearError]);
 
+<<<<<<< HEAD
   // Função para atualizar os dados do formulário
+=======
+  // Function to update form data
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -39,7 +63,11 @@ export function AuthPage({ language, onLanguageChange }: AuthPageProps) {
     }));
   };
 
+<<<<<<< HEAD
   // Função para lidar com o envio do formulário de login
+=======
+  // Function to handle login form submission
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -54,12 +82,20 @@ export function AuthPage({ language, onLanguageChange }: AuthPageProps) {
 
     const success = await login(loginData);
     if (success) {
+<<<<<<< HEAD
       // Login bem-sucedido - o contexto já gerencia o redirecionamento
+=======
+      // Login successful - context already manages redirection
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
       setFormData({ username: '', password: '', email: '', name: '', age: '' });
     }
   };
 
+<<<<<<< HEAD
   // Função para lidar com o envio do formulário de registro
+=======
+  // Function to handle registration form submission
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -78,13 +114,21 @@ export function AuthPage({ language, onLanguageChange }: AuthPageProps) {
 
     const success = await register(registerData);
     if (success) {
+<<<<<<< HEAD
       // Registro bem-sucedido - muda para modo de login
+=======
+      // Registration successful - switches to login mode
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
       setFormMode('login');
       setFormData({ username: '', password: '', email: '', name: '', age: '' });
     }
   };
 
+<<<<<<< HEAD
   // Função para alternar entre login e registro
+=======
+  // Function to toggle between login and registration
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
   const toggleFormMode = () => {
     setFormMode(prev => prev === 'login' ? 'register' : 'login');
     setFormData({ username: '', password: '', email: '', name: '', age: '' });
@@ -94,11 +138,19 @@ export function AuthPage({ language, onLanguageChange }: AuthPageProps) {
   return (
     <div className="auth-container">
       <div className="auth-card">
+<<<<<<< HEAD
         {/* Header com título e seletor de idioma */}
         <div className="auth-header">
           <h1>{formMode === 'login' ? t.auth.loginTitle : t.auth.registerTitle}</h1>
           
           {/* Seletor de idioma */}
+=======
+        {/* Header with title and language selector */}
+        <div className="auth-header">
+          <h1>{formMode === 'login' ? t.auth.loginTitle : t.auth.registerTitle}</h1>
+          
+          {/* Language selector */}
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
           <div className="language-selector">
             <select
               value={language}
@@ -111,7 +163,11 @@ export function AuthPage({ language, onLanguageChange }: AuthPageProps) {
           </div>
         </div>
 
+<<<<<<< HEAD
         {/* Formulário de Login */}
+=======
+        {/* Login Form */}
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
         {formMode === 'login' && (
           <form onSubmit={handleLogin} className="auth-form">
             <div className="form-group">
@@ -159,7 +215,11 @@ export function AuthPage({ language, onLanguageChange }: AuthPageProps) {
           </form>
         )}
 
+<<<<<<< HEAD
         {/* Formulário de Registro */}
+=======
+        {/* Registration Form */}
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
         {formMode === 'register' && (
           <form onSubmit={handleRegister} className="auth-form">
             <div className="form-group">
@@ -248,7 +308,11 @@ export function AuthPage({ language, onLanguageChange }: AuthPageProps) {
           </form>
         )}
 
+<<<<<<< HEAD
         {/* Exibição de erros */}
+=======
+        {/* Error display */}
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
         {error && (
           <div className="error-message">
             {error}

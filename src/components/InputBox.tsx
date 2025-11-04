@@ -1,6 +1,7 @@
 import { useTranslations, type Language } from '../utils/translations';
 
 /**
+<<<<<<< HEAD
  * Interface para as props do componente InputBox
  * Define as propriedades necessárias para o componente de input
  */
@@ -24,6 +25,31 @@ export function InputBox({ input, setInput, onSend, language, disabled = false }
   /**
    * Função para lidar com o envio da mensagem
    * Verifica se há texto e se não está desabilitado antes de enviar
+=======
+ * Interface for InputBox component props
+ * Defines the properties needed for the input component
+ */
+interface InputBoxProps {
+  input: string; // Current input value
+  setInput: (value: string) => void; // Function to update input value
+  onSend: () => void; // Function called when message is sent
+  language: Language; // Current application language
+  disabled?: boolean; // If input is disabled (optional, default false)
+}
+
+/**
+ * Component for chat input box
+ * Allows user to type and send messages
+ * Includes Enter key support for sending and validations
+ */
+export function InputBox({ input, setInput, onSend, language, disabled = false }: InputBoxProps) {
+  // Hook to access translations based on current language
+  const t = useTranslations(language);
+
+  /**
+   * Function to handle message sending
+   * Checks if there is text and if not disabled before sending
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
    */
   const handleSend = () => {
     if (input.trim() && !disabled) {

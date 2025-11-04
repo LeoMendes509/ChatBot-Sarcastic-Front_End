@@ -6,12 +6,17 @@ import { Message } from '../components/Message';
 import { InputBox } from '../components/InputBox';
 import { MenuDropdown } from '../components/MenuDropdown';
 
+<<<<<<< HEAD
 // Interface para as props do componente ChatPage
+=======
+// Interface for ChatPage component props
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
 interface ChatPageProps {
   language: Language;
   onLanguageChange: (lang: Language) => void;
 }
 
+<<<<<<< HEAD
 // Componente da página do chat
 export function ChatPage({ language, onLanguageChange }: ChatPageProps) {
   // Hook para acessar o contexto de autenticação
@@ -21,6 +26,17 @@ export function ChatPage({ language, onLanguageChange }: ChatPageProps) {
   const t = useTranslations(language);
   
   // Estados locais para o chat
+=======
+// Chat page component
+export function ChatPage({ language, onLanguageChange }: ChatPageProps) {
+  // Hook to access authentication context
+  const { token, username } = useAuth();
+  
+  // Hook to access translations
+  const t = useTranslations(language);
+  
+  // Local states for chat
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -28,25 +44,44 @@ export function ChatPage({ language, onLanguageChange }: ChatPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   
+<<<<<<< HEAD
   // Ref para o container de mensagens (para scroll automático)
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Função para fazer scroll automático para a última mensagem
+=======
+  // Ref for messages container (for auto scroll)
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Function to auto scroll to last message
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+<<<<<<< HEAD
   // Efeito para scroll automático quando novas mensagens são adicionadas
+=======
+  // Effect for auto scroll when new messages are added
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
+<<<<<<< HEAD
   // Função para salvar mensagens no localStorage
+=======
+  // Function to save messages to localStorage
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
   const saveMessagesToLocal = (messages: ChatMessage[]) => {
     try {
       localStorage.setItem(`chat_history_${username}`, JSON.stringify(messages));
     } catch (err) {
+<<<<<<< HEAD
       console.error('Erro ao salvar histórico local:', err);
+=======
+      console.error('Error saving local history:', err);
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
     }
   };
 
@@ -69,6 +104,10 @@ export function ChatPage({ language, onLanguageChange }: ChatPageProps) {
       try {
         setIsLoadingHistory(true);
         
+<<<<<<< HEAD
+=======
+        
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
         // Primeiro tenta carregar do localStorage
         const localHistory = loadMessagesFromLocal();
         if (localHistory.length > 0) {

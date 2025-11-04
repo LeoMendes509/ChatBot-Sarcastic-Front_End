@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Sistema de traduções centralizado para o chatbot
 // Suporta português brasileiro e inglês com todas as mensagens necessárias
 
@@ -6,6 +7,16 @@ export type Language = 'pt-BR' | 'en';
 // Interface para definir a estrutura das traduções
 export interface Translations {
   // Traduções para o chat
+=======
+// Centralized translation system for the chatbot
+// Supports Brazilian Portuguese and English with all necessary messages
+
+export type Language = 'pt-BR' | 'en';
+
+// Interface to define translation structure
+export interface Translations {
+  // Translations for chat
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
   chat: {
     placeholder: string;
     send: string;
@@ -18,7 +29,11 @@ export interface Translations {
     historyEmpty: string;
   };
   
+<<<<<<< HEAD
   // Traduções para autenticação
+=======
+  // Translations for authentication
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
   auth: {
     loginTitle: string;
     registerTitle: string;
@@ -40,7 +55,11 @@ export interface Translations {
     delete: string;
   };
   
+<<<<<<< HEAD
   // Traduções para menu
+=======
+  // Translations for menu
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
   menu: {
     history: string;
     login: string;
@@ -50,7 +69,11 @@ export interface Translations {
     account: string;
   };
   
+<<<<<<< HEAD
   // Traduções para mensagens de erro/sucesso
+=======
+  // Translations for error/success messages
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
   messages: {
     loginSuccess: string;
     registerSuccess: string;
@@ -78,7 +101,11 @@ export interface Translations {
     pleaseLogin: string;
   };
   
+<<<<<<< HEAD
   // Traduções para informações
+=======
+  // Translations for information
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
   info: {
     title: string;
     description: string;
@@ -87,7 +114,11 @@ export interface Translations {
   };
 }
 
+<<<<<<< HEAD
 // Objeto com todas as traduções
+=======
+// Object with all translations
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
 export const translations: Record<Language, Translations> = {
   'pt-BR': {
     chat: {
@@ -237,7 +268,11 @@ export const translations: Record<Language, Translations> = {
   }
 };
 
+<<<<<<< HEAD
 // Hook para usar traduções no componente
+=======
+// Hook to use translations in component
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
 export const useTranslations = (language: Language) => {
   return translations[language];
 };

@@ -1,4 +1,5 @@
 /**
+<<<<<<< HEAD
  * Interface para as props do componente Message
  * Define a estrutura de dados necessária para exibir uma mensagem
  */
@@ -19,6 +20,28 @@ export function Message({ text, sender, timestamp }: MessageProps) {
    * Converte ISO string para formato legível (HH:MM)
    * @param timestamp - String ISO da data/hora
    * @returns String formatada ou string vazia se inválida
+=======
+ * Interface for Message component props
+ * Defines the data structure needed to display a message
+ */
+interface MessageProps {
+  text: string; // Message text
+  sender: 'user' | 'bot'; // Who sent the message (user or bot)
+  timestamp?: string; // Message date and time (optional)
+}
+
+/**
+ * Component to display chat messages
+ * Renders user and bot messages with different styles
+ * Includes timestamp formatting and responsiveness
+ */
+export function Message({ text, sender, timestamp }: MessageProps) {
+  /**
+   * Function to format message timestamp
+   * Converts ISO string to readable format (HH:MM)
+   * @param timestamp - ISO string of date/time
+   * @returns Formatted string or empty string if invalid
+>>>>>>> 215eddaadd9dbc839647eb2b5daff08257ec029a
    */
   const formatTimestamp = (timestamp?: string): string => {
     if (!timestamp) return '';
